@@ -40,7 +40,7 @@ func main() {
 
 ```shell
 $ curl "http://localhost:8080?age>=42&name=John&surname='Doe'"
-age> = 42 AND name = 'John' AND surname = 'Doe'
+age >= 42 AND name = 'John' AND surname = 'Doe'
 ```
 
 ## Supported operators
