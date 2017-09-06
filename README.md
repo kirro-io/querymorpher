@@ -1,5 +1,7 @@
 # querymorpher
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/kirro-io/querymorpher)](https://goreportcard.com/report/github.com/kirro-io/querymorpher)
+
 Simple package that converts `url.Values` to sql like query.
 
 ## Installation
