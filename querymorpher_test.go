@@ -35,7 +35,7 @@ func TestTransform(t *testing.T) {
 				t.Error(err.Error())
 			}
 			if tc.shouldFail && err == nil {
-				t.Errorf("should fail for '%s' but got ''", tc.query, res)
+				t.Errorf("should fail for '%s' but got '%s'", tc.query, res)
 			}
 			if res != tc.expected {
 				t.Errorf("Expected: '%s', Got: '%s'", res, tc.expected)
