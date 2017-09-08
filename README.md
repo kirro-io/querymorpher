@@ -1,6 +1,8 @@
 # querymorpher
-
+[![Build Status](https://travis-ci.org/Kirro-io/querymorpher.svg?branch=master)](https://travis-ci.org/Kirro-io/querymorpher)
+[![codecov](https://codecov.io/gh/Kirro-io/querymorpher/branch/master/graph/badge.svg)](https://codecov.io/gh/Kirro-io/querymorpher)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kirro-io/querymorpher)](https://goreportcard.com/report/github.com/kirro-io/querymorpher)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Simple package that converts `url.Values` to sql like query.
 
