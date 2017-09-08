@@ -3,7 +3,7 @@ package querymorpher
 import (
 	"fmt"
 	"net/url"
-	"strconv"
+	"regexp"
 	"strings"
 )
 
@@ -60,13 +60,8 @@ func parseQueryValue(val string) string {
 		return val
 	}
 
-	if _, err := strconv.ParseBool(val); err == nil {
-		return val
-	}
-	if _, err := strconv.ParseInt(val, 10, 64); err == nil {
-		return val
-	}
-	if _, err := strconv.ParseFloat(val, 64); err == nil {
+	ok, err := regexp.Match("([+-]?[0-9]+[.0-9]*)|(true|false)", []byte(val))
+	if err != nil || ok {
 		return val
 	}
 
