@@ -1,6 +1,7 @@
 package querymorpher
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 )
@@ -42,4 +43,11 @@ func TestTransform(t *testing.T) {
 			}
 		})
 	}
+}
+
+func ExampleTransform() {
+	q, _ := url.ParseQuery("age__gte=18&name=John")
+	res, _ := Transform(q)
+	fmt.Println(res)
+	// Output: age >= 18 AND name = 'John'
 }
