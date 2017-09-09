@@ -60,7 +60,7 @@ func parseQueryValue(val string) string {
 		return val
 	}
 
-	ok, err := regexp.Match("([+-]?[0-9]+[.0-9]*)|(true|false)", []byte(val))
+	ok, err := regexp.Match("(^[+-]?[0-9]+[.0-9]*$)|(^true|false$)", []byte(val))
 	if err != nil || ok {
 		return val
 	}

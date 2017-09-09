@@ -19,7 +19,6 @@ func TestTransform(t *testing.T) {
 		{"test int", "fld=4", "fld = 4", false},
 		{"test string with quotes", "fld='test'", "fld = 'test'", false},
 		{"test string without quotes", "fld=test", "fld = 'test'", false},
-		{"test multiple strings", "fld=test&fld2='test'", "fld = 'test' AND fld2 = 'test'", false},
 		{"test empty key", "=test", "", true},
 		{"test empty value", "key=", "", true},
 		{"test gt operator", "number__gt=42", "number > 42", false},
@@ -27,6 +26,7 @@ func TestTransform(t *testing.T) {
 		{"test gte operator", "number__gte=42", "number >= 42", false},
 		{"test lte operator", "number__lte=42", "number <= 42", false},
 		{"test non-existing operator", "t__t=test", "t__t = 'test'", false},
+		{"test data", "date=2017-09-09", "date = '2017-09-09'", false},
 	}
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -39,7 +39,7 @@ func TestTransform(t *testing.T) {
 				t.Errorf("should fail for '%s' but got '%s'", tc.query, res)
 			}
 			if res != tc.expected {
-				t.Errorf("Expected: '%s', Got: '%s'", res, tc.expected)
+				t.Errorf("Expected: '%s', Got: '%s'", tc.expected, res)
 			}
 		})
 	}
