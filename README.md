@@ -27,7 +27,7 @@ import (
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		q, err := querymorpher.Transform(r.URL.Query())
+		q, err := querymorpher.QueryFromRequest(r)
 
 		if err != nil {
 			log.Fatal(err.Error())
@@ -54,3 +54,25 @@ __gte | >=
 __lt | <
 __lte | <=
 __neq | !=
+
+## Ordering results
+
+For ascending ordering use `order_by=<field_name>`:
+
+```
+?age__gt=18&order_by=age
+```
+
+For descending ordering insert minus sign before field name `order_by=-<field_name>`:
+
+```
+?age__gt=18&order_by=-age
+```
+
+## Limiting results
+
+Simply use `limit=<count>` query param.
+
+```
+?age__gt=18limit=1
+```
