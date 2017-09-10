@@ -1,7 +1,6 @@
 package querymorpher
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 )
@@ -27,7 +26,9 @@ func TestTransform(t *testing.T) {
 		{"test lte operator", "number__lte=42", "number <= 42", false},
 		{"test non-existing operator", "t__t=test", "t__t = 'test'", false},
 		{"test data", "date=2017-09-09", "date = '2017-09-09'", false},
-		{"test data", "name=John&order_by=age", "name = 'John' ORDER BY age", false},
+		{"test order", "name=John&order_by=age", "name = 'John' ORDER BY age", false},
+		{"test order desc", "name=John&order_by=-age", "name = 'John' ORDER BY age DESC", false},
+		{"test limit", "name=John&limit=4", "name = 'John' LIMIT 4", false},
 	}
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -44,11 +45,4 @@ func TestTransform(t *testing.T) {
 			}
 		})
 	}
-}
-
-func ExampleTransform() {
-	q, _ := url.ParseQuery("age__gte=18&name=John")
-	res, _ := Transform(q)
-	fmt.Println(res)
-	// Output: age >= 18 AND name = 'John'
 }
