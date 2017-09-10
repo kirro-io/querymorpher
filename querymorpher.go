@@ -12,11 +12,6 @@ var (
 	operatorRegexp      *regexp.Regexp
 )
 
-const (
-	ORDER_BY = "order_by"
-	LIMIT    = "limit"
-)
-
 func init() {
 	unquotedValueRegexp = regexp.MustCompile("(^[+-]?[0-9]+[.0-9]*$)|(^true|false$)")
 	operatorRegexp = regexp.MustCompile("__([n]?eq|[gl]+t[e]?)$")
@@ -50,6 +45,7 @@ func (q *queryScript) set(key, value string) error {
 	}
 
 	q.where = append(q.where, expr)
+
 	return nil
 }
 
@@ -71,15 +67,12 @@ func (q *queryScript) setLimit(value string) {
 // repr returns string representation of query.
 func (q *queryScript) repr() (query string) {
 	query = strings.Join(q.where, " AND ")
-
 	if q.orderBy != "" {
 		query += fmt.Sprintf(" ORDER BY %s", q.orderBy)
 	}
-
 	if q.limit != "" {
 		query += fmt.Sprintf(" LIMIT %s", q.limit)
 	}
-
 	return
 }
 
@@ -112,9 +105,9 @@ func QueryFromRequest(r *http.Request) (string, error) {
 		}
 		value := val[0]
 		switch key {
-		case ORDER_BY:
+		case "order_by":
 			query.setOrderBy(value)
-		case LIMIT:
+		case "limit":
 			query.setLimit(value)
 		default:
 			err := query.set(key, value)
