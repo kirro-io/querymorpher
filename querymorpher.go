@@ -19,8 +19,16 @@ var operatorMap = map[string]string{
 // Transform takes url.Values and transforms them to sql like query.
 func Transform(u url.Values) (string, error) {
 	var res []string
+	order := ""
 
 	for key, value := range u {
+
+		switch key {
+		case "order_by":
+			order = fmt.Sprintf(" ORDER BY %s", value[0])
+			continue
+		}
+
 		if len(value) != 1 || len(value[0]) == 0 {
 			return "", fmt.Errorf("multiple or no values are not supported for '%s'", key)
 		}
@@ -34,7 +42,7 @@ func Transform(u url.Values) (string, error) {
 		res = append(res, fmt.Sprintf("%s %s %s", attr, op, val))
 	}
 
-	return strings.Join(res, " AND "), nil
+	return strings.Join(res, " AND ") + order, nil
 }
 
 // parseQueryKey tries to get operator from query key. If operator
