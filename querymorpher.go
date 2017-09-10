@@ -2,68 +2,126 @@ package querymorpher
 
 import (
 	"fmt"
-	"net/url"
+	"net/http"
 	"regexp"
 	"strings"
 )
 
-var operatorMap = map[string]string{
-	"gt":  ">",
-	"gte": ">=",
-	"lt":  "<",
-	"lte": "<=",
-	"eq":  "=",
-	"neq": "!=",
+var (
+	unquotedValueRegexp *regexp.Regexp
+	operatorRegexp      *regexp.Regexp
+)
+
+const (
+	ORDER_BY = "order_by"
+	LIMIT    = "limit"
+)
+
+func init() {
+	unquotedValueRegexp = regexp.MustCompile("(^[+-]?[0-9]+[.0-9]*$)|(^true|false$)")
+	operatorRegexp = regexp.MustCompile("__([n]?eq|[gl]+t[e]?)$")
 }
 
-// Transform takes url.Values and transforms them to sql like query.
-func Transform(u url.Values) (string, error) {
-	var res []string
+// queryScript is a builder for sql like query.
+type queryScript struct {
+	where   []string
+	orderBy string
+	limit   string
+}
 
-	for key, value := range u {
-		if len(value) != 1 || len(value[0]) == 0 {
-			return "", fmt.Errorf("multiple or no values are not supported for '%s'", key)
+// set parses operator from key add quotes string value if needed. Parsed
+// key and value are appended into WHERE clausule.
+func (q *queryScript) set(key, value string) error {
+	var fld, op, expr string
+
+	op = operatorRegexp.FindString(key)
+	op = getOperator(op)
+
+	fld = operatorRegexp.ReplaceAllString(key, "")
+
+	if fld == "" || value == "" {
+		return fmt.Errorf("could not set '%s %s %s'", fld, op, value)
+	}
+
+	if strings.HasPrefix(value, "'") || strings.HasPrefix(value, `"`) || unquotedValueRegexp.MatchString(value) {
+		expr = fmt.Sprintf("%s %s %s", fld, op, value)
+	} else {
+		expr = fmt.Sprintf("%s %s '%s'", fld, op, value)
+	}
+
+	q.where = append(q.where, expr)
+	return nil
+}
+
+// setOrderBy sets `orderBy` attribute to given value.
+func (q *queryScript) setOrderBy(value string) {
+	if strings.HasPrefix(value, "-") {
+		value = strings.Replace(value, "-", "", 1)
+		q.orderBy = fmt.Sprintf("%s DESC", value)
+	} else {
+		q.orderBy = value
+	}
+}
+
+// setLimit sets `limit` attribute to given value.
+func (q *queryScript) setLimit(value string) {
+	q.limit = value
+}
+
+// repr returns string representation of query.
+func (q *queryScript) repr() (query string) {
+	query = strings.Join(q.where, " AND ")
+
+	if q.orderBy != "" {
+		query += fmt.Sprintf(" ORDER BY %s", q.orderBy)
+	}
+
+	if q.limit != "" {
+		query += fmt.Sprintf(" LIMIT %s", q.limit)
+	}
+
+	return
+}
+
+// getOperator identifies and returns query operator.
+func getOperator(op string) string {
+	op = strings.Replace(op, "__", "", -1)
+	switch op {
+	case "eq":
+		return "="
+	case "neq":
+		return "!="
+	case "lt":
+		return "<"
+	case "lte":
+		return "<="
+	case "gt":
+		return ">"
+	case "gte":
+		return ">="
+	}
+	return "="
+}
+
+// QueryFromRequest transform request's url query values to sql like query.
+func QueryFromRequest(r *http.Request) (string, error) {
+	query := &queryScript{}
+	for key, val := range r.URL.Query() {
+		if len(val) > 1 || len(val) == 0 {
+			return "", fmt.Errorf("key '%s' cannot have none or multiple values", key)
 		}
-		if len(key) == 0 {
-			return "", fmt.Errorf("key for value '%s' cannot be empty", value[0])
+		value := val[0]
+		switch key {
+		case ORDER_BY:
+			query.setOrderBy(value)
+		case LIMIT:
+			query.setLimit(value)
+		default:
+			err := query.set(key, value)
+			if err != nil {
+				return "", err
+			}
 		}
-
-		attr, op := parseQueryKey(key)
-		val := parseQueryValue(value[0])
-
-		res = append(res, fmt.Sprintf("%s %s %s", attr, op, val))
 	}
-
-	return strings.Join(res, " AND "), nil
-}
-
-// parseQueryKey tries to get operator from query key. If operator
-// is nout found in operatorMap then given key is returned with default
-// operator "=".
-func parseQueryKey(key string) (string, string) {
-
-	s := strings.Split(key, "__")
-	operator := s[len(s)-1]
-
-	op, ok := operatorMap[operator]
-	if !ok {
-		return key, "="
-	}
-
-	return strings.Join(s[:len(s)-1], "__"), op
-}
-
-// parseQueryValue makes sure that string values are quoted.
-func parseQueryValue(val string) string {
-	ch := []rune(val)[0]
-	if ch == '\'' || ch == '"' {
-		return val
-	}
-
-	ok, err := regexp.Match("(^[+-]?[0-9]+[.0-9]*$)|(^true|false$)", []byte(val))
-	if err != nil || ok {
-		return val
-	}
-
-	return fmt.Sprintf("'%s'", val)
+	return query.repr(), nil
 }
