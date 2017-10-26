@@ -74,5 +74,5 @@ For descending ordering insert minus sign before field name `order_by=-<field_na
 Simply use `limit=<count>` query param.
 
 ```
-?age__gt=18limit=1
+?age__gt=18&limit=1
 ```
